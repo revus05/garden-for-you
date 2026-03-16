@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Raleway } from "next/font/google";
+import { EB_Garamond, Noto_Sans } from "next/font/google";
 import "./globals.css";
+import { Providers } from "app/providers";
+import type { ReactNode } from "react";
 
-const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const notoSans = Noto_Sans({ subsets: ["cyrillic"], variable: "--font-sans" });
+const ebGaramond = EB_Garamond({
+  subsets: ["cyrillic"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -22,14 +18,12 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
-    <html lang="en" className={raleway.variable}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="ru" className={notoSans.variable}>
+      <body className={`${ebGaramond.variable} antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
