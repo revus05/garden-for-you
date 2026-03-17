@@ -1,2 +1,6 @@
+export {
+  default as userSlice,
+  signIn,
+  signOut,
+} from "./model";
 export type { User } from "./model/types";
-export { UserProvider, useUser } from "./model/user-provider";

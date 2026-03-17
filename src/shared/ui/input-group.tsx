@@ -55,7 +55,6 @@ function InputGroupAddon({
         if ((e.target as HTMLElement).closest("button")) {
           return;
         }
-        // Keep focus behavior consistent and avoid text selection.
         e.preventDefault();
         e.currentTarget.parentElement?.querySelector("input")?.focus();
       }}

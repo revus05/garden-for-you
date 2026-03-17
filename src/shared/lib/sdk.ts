@@ -1,4 +1,5 @@
 import Medusa from "@medusajs/js-sdk";
+import { AUTH_TOKEN_COOKIE } from "shared/config/auth";
 
 function requiredEnv(name: string, value: string | undefined): string {
   if (!value) throw new Error(`Missing ${name}`);
@@ -15,16 +16,15 @@ const MEDUSA_PUBLISHABLE_KEY = requiredEnv(
 );
 
 export function createSdk({ token }: { token?: string } = {}) {
-  const client = new Medusa({
+  return new Medusa({
     baseUrl: MEDUSA_URL,
     publishableKey: MEDUSA_PUBLISHABLE_KEY,
     debug: process.env.NODE_ENV === "development",
+    globalHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
+    auth: {
+      type: "jwt",
+      jwtTokenStorageMethod: "nostore",
+      jwtTokenStorageKey: AUTH_TOKEN_COOKIE,
+    },
   });
-
-  if (token) client.client.setToken(token);
-
-  return client;
 }
-
-// Backward-compatible default instance (avoid mutating token on this in SSR).
-export const sdk = createSdk();

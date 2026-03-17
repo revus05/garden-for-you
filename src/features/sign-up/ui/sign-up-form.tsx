@@ -1,15 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { User } from "entities/user";
-import { useUser } from "entities/user";
+import { signIn } from "entities/user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createElement, useState } from "react";
 import { useForm } from "react-hook-form";
-import { AUTH_TOKEN_COOKIE } from "shared/config/auth";
-import { setClientCookie } from "shared/lib/client-cookie";
-import { createSdk } from "shared/lib/sdk";
+import { useAppDispatch } from "shared/lib/hooks";
 import { paths } from "shared/navigation";
 import { Button } from "shared/ui/button";
 import {
@@ -24,11 +21,12 @@ import {
 import { Icons } from "shared/ui/icons";
 import { Input } from "shared/ui/input";
 import { toast } from "sonner";
+import { signUpRequest } from "../api/sign-up";
 import { type SignUpValues, signUpSchema } from "../model/schema";
 
 export function SignUpForm() {
   const router = useRouter();
-  const { setUser } = useUser();
+  const dispatch = useAppDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
@@ -46,52 +44,16 @@ export function SignUpForm() {
 
   async function onSubmit(values: SignUpValues) {
     try {
-      const sdk = createSdk();
-
-      const registrationToken = await sdk.auth.register(
-        "customer",
-        "emailpass",
-        {
-          email: values.email,
-          password: values.password,
-        },
-      );
-
-      const regSdk = createSdk({ token: registrationToken });
-      await regSdk.store.customer.create({
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        phone: values.phone,
-      });
-
-      const loginResult = await sdk.auth.login("customer", "emailpass", {
-        email: values.email,
-        password: values.password,
-      });
-
-      if (typeof loginResult !== "string") {
-        toast.error("Требуются дополнительные шаги авторизации.");
-        return;
-      }
-
-      const token = loginResult;
-      setClientCookie(AUTH_TOKEN_COOKIE, token, {
-        path: "/",
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAgeSeconds: 60 * 60 * 24 * 30,
-      });
-
-      const authed = createSdk({ token });
-      const { customer } = await authed.store.customer.retrieve();
-      setUser(customer as User);
+      const customer = await signUpRequest(values);
+      dispatch(signIn(customer));
 
       router.push(paths.home);
       router.refresh();
-    } catch {
+    } catch (error) {
       toast.error(
-        "Не удалось зарегистрироваться. Проверьте данные и попробуйте снова.",
+        error instanceof Error
+          ? error.message
+          : "Не удалось зарегистрироваться. Проверьте данные и попробуйте снова.",
       );
     }
   }
